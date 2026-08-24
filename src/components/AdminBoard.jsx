@@ -116,6 +116,12 @@ export default function AdminBoard() {
         </button>
       </div>
 
+      {data.storage && !data.storage.ok && (
+        <p className="alert" role="alert" style={{ marginBottom: 16 }}>
+          {data.storage.message}
+        </p>
+      )}
+
       <section className="panel">
         <ResultBars rows={data.rows} total={data.total} memberCount={data.memberCount} />
       </section>

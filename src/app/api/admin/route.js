@@ -1,6 +1,6 @@
 import { event, getPoll } from "@/config/event";
 import { checkPasscode } from "@/lib/admin";
-import { tally, voterLog } from "@/lib/store";
+import { storageStatus, tally, voterLog } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +18,7 @@ export async function POST(request) {
 
   return Response.json({
     ok: true,
+    storage: storageStatus(),
     ...counts,
     memberCount: event.members.length,
     voted,

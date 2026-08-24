@@ -1,5 +1,5 @@
 import { event, findMember, getPoll } from "@/config/event";
-import { recordVote, tally } from "@/lib/store";
+import { recordVote, storageStatus, tally } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +29,20 @@ export async function POST(request) {
   const option = poll.options.find((o) => o.id === optionId);
   if (!option) return fail(400, "Pick an answer before voting.");
 
-  const result = await recordVote({ voter: member, pollId: poll.id, optionId: option.id });
+  // Refuse rather than take a vote that would vanish. A clear "not set up"
+  // beats a cheerful confirmation and an empty tally later.
+  const storage = storageStatus();
+  if (!storage.ok) {
+    return fail(503, "Voting is not set up on this site yet - your vote could not be saved. Please tell the organisers.");
+  }
+
+  let result;
+  try {
+    result = await recordVote({ voter: member, pollId: poll.id, optionId: option.id });
+  } catch (err) {
+    console.error("recordVote failed:", err);
+    return fail(503, "Could not reach the vote store. Please try again in a moment.");
+  }
 
   if (!result.ok && result.reason === "duplicate") {
     // Only that this name is used - never which answer it picked. Anyone can

@@ -181,38 +181,59 @@ shared phone can be passed around a table.
 
 ## Where the votes live
 
-`data/votes.json`, created on the first vote:
+Two backends, picked automatically from the environment. Nothing above
+`src/lib/store.js` changes between them.
+
+| Running | Backend | Setup |
+|---|---|---|
+| `npm run dev` on your machine | `data/votes.json` | none |
+| Vercel, or any serverless host | Redis | one integration, below |
+
+### Vercel needs Redis — this is not optional
+
+On Vercel every request runs in a fresh function with a **read-only**
+filesystem, so `data/votes.json` saves nothing. Votes appear to work and then
+`/admin` shows nobody voted.
+
+Connect a database once:
+
+1. Vercel dashboard → your project → **Storage** → **Marketplace**
+2. Pick **Upstash for Redis**, free plan
+3. Connect it to the `onam-veno` project
+4. **Redeploy** (Deployments → ⋯ → Redeploy)
+
+That is all. Upstash injects `KV_REST_API_URL` and `KV_REST_API_TOKEN`
+automatically, and the app picks them up — no code change, no npm package.
+`UPSTASH_REDIS_REST_URL` / `_TOKEN` are read too, if you set them by hand.
+
+Also set **`ADMIN_PASSCODE`** under Settings → Environment Variables, or
+`/admin` will reject every passcode on the deployed site.
+
+To confirm it worked, open `/admin`. If storage is missing it shows a red
+warning across the top, and voting returns "Voting is not set up on this site
+yet" rather than quietly dropping the vote.
+
+### The shape of a vote
 
 ```json
 {
-  "votes": [
-    {
-      "id": "3f2b...",
-      "voter": "Sandra Joseph",
-      "voterKey": "sandra joseph",
-      "pollId": "onam-veno-2026",
-      "optionId": "venam",
-      "at": "2026-08-24T08:41:11.402Z"
-    }
-  ]
+  "id": "3f2b...",
+  "voter": "Kuthubu",
+  "voterKey": "kuthubu",
+  "pollId": "onam-veno-2026",
+  "optionId": "venam",
+  "at": "2026-08-24T08:41:11.402Z"
 }
 ```
 
-- Survives restarts and refreshes.
-- Back it up by copying the file.
-- Simultaneous votes are queued, so two people tapping Vote at the same instant
-  cannot overwrite each other.
-- The file is gitignored, so test votes never get committed.
+In Redis these are fields of one hash, `onam:votes:<pollId>`, keyed by
+`voterKey`. Writes use `HSETNX`, which is atomic, so two people voting under one
+name at the same instant cannot both get through even on different instances.
+The file backend puts every write through a queue for the same reason.
 
-To reset by hand, stop the site and delete `data/votes.json`.
-
-> **Note on hosting:** this works because the site runs on one machine with a
-> real filesystem — a laptop at home, or a normal VPS. Serverless hosts (Vercel,
-> Netlify) give each request a throwaway filesystem, so votes would vanish. If
-> you must deploy there, replace `src/lib/store.js` with a small database;
-> nothing else in the app needs to change.
-
----
+Locally, back the votes up by copying `data/votes.json`. The file is gitignored,
+so test votes never get committed. To reset either backend, use **Clear all
+votes** on `/admin`.
 
 ## Files
 
