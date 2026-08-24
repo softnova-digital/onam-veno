@@ -265,7 +265,7 @@ To regenerate them after dropping in a new original:
 ```bash
 node -e "
 const sharp=require('sharp'), src='media-original/maveli-original.png';
-sharp(src).extract({left:580,top:60,width:1200,height:1200}).resize(900,900).webp({quality:86}).toFile('public/maveli.webp');
+sharp(src).extract({left:268,top:0,width:1780,height:1780}).resize(900,900).webp({quality:86}).toFile('public/maveli.webp');
 sharp(src).resize(1400,1400).webp({quality:82}).toFile('public/maveli-full.webp');
 sharp(src).extract({left:0,top:250,width:2048,height:1152}).resize(1280,720).webp({quality:80}).toFile('public/maveli-poster.webp');
 "

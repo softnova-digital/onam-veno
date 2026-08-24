@@ -312,7 +312,7 @@ a { color: var(--red); }
 
 .medallion {
   position: relative;
-  width: min(124px, 33vw);
+  width: min(142px, 38vw);
   aspect-ratio: 1;
   border-radius: var(--radius);
   animation: mv-float 4.2s ease-in-out infinite alternate;
