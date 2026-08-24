@@ -19,11 +19,16 @@ This is the important part of the design.
 | The counts (വേണം vs വേണ്ട) | ✅ | ✅ |
 | How many have voted, how many are left | ✅ | ✅ |
 | **Which person voted which way** | ❌ | ✅ |
-| Who has not voted yet, by name | ❌ | ✅ |
+| Who has not voted yet, by name | ✅ (it is the dropdown) | ✅ |
 
 - `/` — vote
 - `/results` — **public.** Counts and turnout. No passcode, no names.
 - `/admin` — **passcode.** Who voted, what they picked, who is still missing.
+
+A name disappears from the dropdown once it has been used, so the remaining
+names are visible to anyone opening the site. That reveals *who* has voted, but
+never *what* they voted — picking a used name only says "that name has already
+voted".
 
 The public results endpoint never receives voter names at all — they are not
 hidden by CSS, they are simply not in the response. The names only leave the
@@ -283,6 +288,9 @@ button instead of an autoplaying clip.
 Everyone votes on a phone, so the phone layout is the real one and the desktop
 layout is the afterthought.
 
+- **The whole ballot is one screen, with nothing to scroll.** The footer link
+  stands down on phones and the padding under the form is gone, because
+  scrolling to reach the Vote button is poor UX when the ballot is this short.
 - **Both answers sit side by side, never stacked.** Stacked, the second answer
   fell below the fold on every phone tested — which quietly favours whichever
   one is on top. Side by side they start at the same height and get the same

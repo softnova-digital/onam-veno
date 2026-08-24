@@ -95,6 +95,16 @@ export async function tally(poll) {
 }
 
 /**
+ * The members who have not voted yet. Deliberately separate from voterLog:
+ * the ballot needs the remaining names and must not load anyone's choice.
+ */
+export async function pendingMembers(poll, members) {
+  const votes = await getVotesFor(poll.id);
+  const voted = new Set(votes.map((v) => v.voterKey));
+  return members.filter((m) => !voted.has(normalizeName(m)));
+}
+
+/**
  * Who voted, and what they chose. Organisers only - never send this to the
  * public results page.
  */

@@ -2,15 +2,17 @@ import Link from "next/link";
 import MaveliPhoto from "@/components/MaveliPhoto";
 import VoteBooth from "@/components/VoteBooth";
 import { event, getPoll } from "@/config/event";
+import { pendingMembers } from "@/lib/store";
 
 // Votes are read and written per request, so never cache this page.
 export const dynamic = "force-dynamic";
 
-export default function HomePage() {
+export default async function HomePage() {
   const poll = getPoll();
+  const remaining = await pendingMembers(poll, event.members);
 
   return (
-    <div className="page">
+    <div className="page page--vote">
       <header className="hero">
         <div className="shell hero__inner">
           <MaveliPhoto className="hero__maveli" />
@@ -22,7 +24,7 @@ export default function HomePage() {
       </header>
 
       <main className="shell">
-        <VoteBooth poll={poll} members={event.members} />
+        <VoteBooth poll={poll} members={remaining} />
       </main>
 
       <footer className="foot">

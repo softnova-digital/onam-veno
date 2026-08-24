@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import MaveliVideo from "@/components/MaveliVideo";
 import Burst from "@/components/Burst";
 import ResultBars from "@/components/ResultBars";
@@ -36,6 +37,7 @@ function clearReceipt(pollId) {
 }
 
 export default function VoteBooth({ poll, members }) {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [choice, setChoice] = useState(null);
   const [error, setError] = useState("");
@@ -93,11 +95,15 @@ export default function VoteBooth({ poll, members }) {
     setName("");
     setChoice(null);
     setError("");
+    // pull a fresh list, so the name just used is gone from the dropdown
+    router.refresh();
   }
 
   if (receipt) {
     return <ThankYou receipt={receipt} onVoteAsSomeoneElse={voteAsSomeoneElse} />;
   }
+
+  if (members.length === 0) return <AllVoted />;
 
   return (
     <form className="ballot" onSubmit={submit} noValidate>
@@ -121,7 +127,9 @@ export default function VoteBooth({ poll, members }) {
             </option>
           ))}
         </select>
-        <p className="hint">Only people on the list can vote, once each.</p>
+        <p className="hint">
+          {members.length} still to vote — names go once used.
+        </p>
       </section>
 
       <section className="step">
@@ -191,6 +199,19 @@ function Choice({ option, index, checked, onSelect }) {
   );
 }
 
+function AllVoted() {
+  return (
+    <section className="done">
+      <h2 className="done__ml ml">എല്ലാവരും വോട്ട് ചെയ്തു!</h2>
+      <p className="done__title display">Everyone has voted</p>
+      <p className="done__body">Every name on the list has been used.</p>
+      <p className="done__links">
+        <Link href="/results">See the result</Link>
+      </p>
+    </section>
+  );
+}
+
 function ThankYou({ receipt, onVoteAsSomeoneElse }) {
   const [result, setResult] = useState(null);
 
@@ -228,10 +249,14 @@ function ThankYou({ receipt, onVoteAsSomeoneElse }) {
         <p className="receipt__value">{receipt.voter}</p>
         <hr />
         <p className="receipt__label">Your answer</p>
-        <p className="receipt__value receipt__value--big">
-          <span className="ml">{receipt.optionMalayalam}</span>
-          {receipt.optionLabel && <span className="receipt__en"> {receipt.optionLabel}</span>}
-        </p>
+        {receipt.optionMalayalam ? (
+          <p className="receipt__value receipt__value--big">
+            <span className="ml">{receipt.optionMalayalam}</span>
+            {receipt.optionLabel && <span className="receipt__en"> {receipt.optionLabel}</span>}
+          </p>
+        ) : (
+          <p className="receipt__value">Counted — kept private</p>
+        )}
       </div>
 
       {result && (

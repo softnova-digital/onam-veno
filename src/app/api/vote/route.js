@@ -32,13 +32,13 @@ export async function POST(request) {
   const result = await recordVote({ voter: member, pollId: poll.id, optionId: option.id });
 
   if (!result.ok && result.reason === "duplicate") {
-    const previous = poll.options.find((o) => o.id === result.vote.optionId);
-    return fail(409, "You have already voted.", {
+    // Only that this name is used - never which answer it picked. Anyone can
+    // select any name here, so returning the choice would hand out exactly the
+    // detail that is meant to stay behind the organisers' passcode. The voter
+    // themselves still sees their own answer from the receipt on their device.
+    return fail(409, "That name has already voted.", {
       reason: "duplicate",
       voter: result.vote.voter,
-      optionId: result.vote.optionId,
-      optionLabel: previous?.label ?? "",
-      optionMalayalam: previous?.malayalamLabel ?? "",
     });
   }
 

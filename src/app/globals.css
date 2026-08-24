@@ -1142,13 +1142,24 @@ select.field { cursor: pointer; }
   .petals, .kasavu::after, .btn::after, .bar__fill::after { display: none; }
 }
 
+/* Phones get the whole ballot on one screen. The footer link is what goes:
+   /results is one tap away from the confirmation anyway, and the 90-odd pixels
+   of padding under the form only existed to scroll content out from under the
+   fixed bar - which is moot once nothing runs past it. */
+@media (max-width: 559px) {
+  .page--vote .foot { display: none; }
+  .ballot { padding-bottom: 12px; }
+}
+
 /* --- short screens ------------------------------------------------------- */
 
 /* On a small phone the height is what runs out, not the width. The taglines
    are flavour rather than instruction, so they are the first thing to go -
    that buys enough room for both answers and the Vote button together. */
 @media (max-height: 720px) {
-  .medallion { width: min(96px, 26vw); }
+  .medallion { width: min(78px, 22vw); }
+  .step__label { margin-bottom: 5px; }
+  .hint { margin-top: 4px; font-size: 0.76rem; }
   .hero { padding: 10px 0 12px; }
   .hero__ml { font-size: clamp(1.5rem, 7.6vw, 2rem); }
   /* the Malayalam title carries the identity; the English restatement and the
@@ -1156,10 +1167,9 @@ select.field { cursor: pointer; }
   .hero__title { display: none; }
   .hero__tagline { display: none; }
   .choice__tag { display: none; }
-  .choice { padding: 14px 10px 12px; }
-  .question { margin: 2px 0 9px; padding: 10px 12px; }
+  .choice { padding: 12px 9px 11px; }
+  .question { margin: 2px 0 8px; padding: 9px 12px; }
   .votebar { padding-top: 9px; }
-  .ballot { padding-bottom: 92px; }
   .btn { padding: 14px 20px; }
 }
 
