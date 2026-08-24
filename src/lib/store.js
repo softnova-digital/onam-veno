@@ -30,8 +30,24 @@ const TOKEN_VARS = ["KV_REST_API_TOKEN", "UPSTASH_REDIS_REST_TOKEN", "REDIS_REST
 
 const firstSet = (names) => names.find((n) => process.env[n]);
 
-const REST_URL = process.env[firstSet(URL_VARS) ?? ""] || undefined;
-const REST_TOKEN = process.env[firstSet(TOKEN_VARS) ?? ""] || undefined;
+// ---------------------------------------------------------------------------
+//  Upstash credentials, committed on purpose so the deployment needs no
+//  environment configuration at all.
+//
+//  These grant full read and write access to the vote database. Anyone who can
+//  read this repository can read, add or delete votes. Rotate them in the
+//  Upstash console once the vote is over:
+//      Upstash → Redis → this database → Details → Rotate token
+//
+//  Environment variables still win when they are set, so a deployment can
+//  override these without a code change.
+// ---------------------------------------------------------------------------
+const FALLBACK_REST_URL = "https://upward-lark-68980.upstash.io";
+const FALLBACK_REST_TOKEN =
+  "gQAAAAAAAQ10AAIgcDJlNWMxODM1YTFhZGE0MmJiYTdiODkxOTZhZTdlYmIzYg";
+
+const REST_URL = process.env[firstSet(URL_VARS) ?? ""] || FALLBACK_REST_URL;
+const REST_TOKEN = process.env[firstSet(TOKEN_VARS) ?? ""] || FALLBACK_REST_TOKEN;
 
 const useRedis = Boolean(REST_URL && REST_TOKEN);
 

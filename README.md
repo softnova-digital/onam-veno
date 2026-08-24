@@ -184,11 +184,14 @@ shared phone can be passed around a table.
 The backend is picked automatically. Nothing above `src/lib/store.js` changes
 between them.
 
-| Running | Backend | Setup | Durable? |
-|---|---|---|---|
-| `npm run dev` on your machine | `data/votes.json` | none | yes |
-| Vercel or similar | `/tmp/onam-votes.json` | none | **no — see below** |
-| Anywhere, with Redis credentials | Redis | one integration | yes |
+| Running | Backend | Durable? |
+|---|---|---|
+| Anywhere, with credentials present | Redis (Upstash) | yes |
+| Fallback, if the credentials are removed | JSON file, or `/tmp` when serverless | local yes, serverless no |
+
+Credentials are committed, so **Redis is what actually runs** in every
+environment. The file backends below are only what happens if you take them
+out.
 
 ### On Vercel, /tmp works but is temporary
 
@@ -203,17 +206,25 @@ For a short one-off vote where everyone answers within a few minutes, this
 usually holds. **Do not rely on it for anything you would be upset to lose.**
 `/admin` shows an amber note whenever this backend is in use.
 
-### Making it durable (optional)
+### Credentials are committed
 
-Connect a database once and the app switches to it automatically:
+Upstash credentials are written into `src/lib/store.js`, so the deployment needs
+no environment configuration — it connects on its own.
 
-1. Vercel dashboard → your project → **Storage** → **Marketplace**
-2. Pick **Upstash for Redis**, free plan, connect it to the project
-3. **Redeploy** — environment variables only reach builds made after they are added
+> **These grant full read and write access to the vote database.** Anyone who
+> can read this repository can read, add or delete votes. Rotate the token in
+> the Upstash console when the vote is over: Upstash → Redis → this database →
+> Details → Rotate token. Making the repository private is worth doing too.
 
-It reads `KV_REST_API_URL` / `KV_REST_API_TOKEN` (and the `UPSTASH_REDIS_REST_*`
-and `REDIS_REST_*` spellings). No npm package and no code change: it talks to
-the REST endpoint over `fetch`.
+Environment variables still take priority when set, so a deployment can
+override the committed values without a code change. It reads
+`KV_REST_API_URL` / `KV_REST_API_TOKEN`, plus the `UPSTASH_REDIS_REST_*` and
+`REDIS_REST_*` spellings. No npm package: it talks to the REST endpoint over
+`fetch`.
+
+**Local `npm run dev` now uses the same database as the live site**, so test
+votes land in the real tally. Use **Clear all votes** on `/admin` before the
+event starts.
 
 Also set **`ADMIN_PASSCODE`** under Settings → Environment Variables, or
 `/admin` will reject every passcode on the deployed site.
