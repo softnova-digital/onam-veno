@@ -18,28 +18,61 @@ import { normalizeName } from "@/config/event";
 //  Everything above this file works the same either way.
 // ============================================================================
 
-const REST_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const REST_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+// Different providers inject different names, so accept the usual ones.
+const URL_VARS = ["KV_REST_API_URL", "UPSTASH_REDIS_REST_URL", "REDIS_REST_URL"];
+const TOKEN_VARS = ["KV_REST_API_TOKEN", "UPSTASH_REDIS_REST_TOKEN", "REDIS_REST_TOKEN"];
+
+const firstSet = (names) => names.find((n) => process.env[n]);
+
+const REST_URL = process.env[firstSet(URL_VARS) ?? ""] || undefined;
+const REST_TOKEN = process.env[firstSet(TOKEN_VARS) ?? ""] || undefined;
 
 const useRedis = Boolean(REST_URL && REST_TOKEN);
 
 /** Serverless hosts give each request a throwaway filesystem. */
 const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
-/** What the organisers' page shows, so a misconfigured deploy is obvious. */
+/**
+ * What the organisers' page shows, so a misconfigured deploy is obvious - and
+ * says which credential is missing, since "no database" has several causes.
+ * Only variable NAMES are reported here, never their values.
+ */
 export function storageStatus() {
   if (useRedis) {
     return { backend: "redis", ok: true, message: "Votes are stored in Redis." };
   }
+
   if (isServerless) {
+    const foundUrl = firstSet(URL_VARS);
+    const foundToken = firstSet(TOKEN_VARS);
+    // A plain redis:// connection string cannot be used from here - this app
+    // talks to the REST endpoint, so it needs the REST url and token.
+    const tcpOnly = !foundUrl && Boolean(process.env.REDIS_URL);
+
+    let why;
+    if (tcpOnly) {
+      why =
+        "Found REDIS_URL, but this app uses the REST API. Connect Upstash for " +
+        "Redis, which provides KV_REST_API_URL and KV_REST_API_TOKEN.";
+    } else if (foundUrl && !foundToken) {
+      why = `Found ${foundUrl} but no matching token. Add the REST token too.`;
+    } else if (!foundUrl && foundToken) {
+      why = `Found ${foundToken} but no matching URL. Add the REST URL too.`;
+    } else {
+      why =
+        "No Redis credentials reached this deployment. Connect Upstash for " +
+        "Redis in Storage, then redeploy - environment variables only apply " +
+        "to builds made after they are added, and must cover the environment " +
+        "you are testing (Production or Preview).";
+    }
+
     return {
       backend: "none",
       ok: false,
-      message:
-        "No database is connected, and this host cannot keep files, so votes " +
-        "are being lost. Add Upstash Redis to the project and redeploy.",
+      message: `Votes cannot be saved on this host without a database. ${why}`,
     };
   }
+
   return { backend: "file", ok: true, message: "Votes are stored in data/votes.json." };
 }
 
