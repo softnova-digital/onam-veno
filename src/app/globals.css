@@ -817,6 +817,16 @@ select.field { cursor: pointer; }
   animation: shake 0.36s ease;
 }
 
+/* Only ever shown on a misconfigured deploy, so it may be loud. */
+.setup {
+  margin: 10px 0 4px;
+  font-weight: 500;
+  line-height: 1.5;
+  animation: none;
+}
+
+.setup strong { display: block; font-weight: 800; }
+
 /* --- confirmation -------------------------------------------------------- */
 
 .done {
