@@ -1,0 +1,7 @@
+node_modules
+.next
+.env.local
+data/votes.json
+
+# large source media - the optimised copies in public/ are what ship
+media-original
