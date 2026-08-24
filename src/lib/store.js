@@ -12,10 +12,15 @@ import { normalizeName } from "@/config/event";
 //    Required on Vercel, where every request gets a fresh, read-only
 //    filesystem - a JSON file there saves nothing at all.
 //
-//  * A plain JSON file at <project>/data/votes.json otherwise, so `npm run dev`
-//    on your own machine needs no credentials and no setup.
+//  * A JSON file otherwise - at <project>/data/votes.json on your own machine,
+//    or /tmp on a serverless host, which is the one writable place there.
 //
 //  Everything above this file works the same either way.
+//
+//  A note on /tmp: it belongs to one warm instance and is wiped on a cold
+//  start, so votes there can be lost or split if the host spins up a second
+//  instance. Fine for a short one-off vote, not for anything that matters.
+//  Connect Redis (see the README) to make it durable.
 // ============================================================================
 
 // Different providers inject different names, so accept the usual ones.
@@ -43,33 +48,14 @@ export function storageStatus() {
   }
 
   if (isServerless) {
-    const foundUrl = firstSet(URL_VARS);
-    const foundToken = firstSet(TOKEN_VARS);
-    // A plain redis:// connection string cannot be used from here - this app
-    // talks to the REST endpoint, so it needs the REST url and token.
-    const tcpOnly = !foundUrl && Boolean(process.env.REDIS_URL);
-
-    let why;
-    if (tcpOnly) {
-      why =
-        "Found REDIS_URL, but this app uses the REST API. Connect Upstash for " +
-        "Redis, which provides KV_REST_API_URL and KV_REST_API_TOKEN.";
-    } else if (foundUrl && !foundToken) {
-      why = `Found ${foundUrl} but no matching token. Add the REST token too.`;
-    } else if (!foundUrl && foundToken) {
-      why = `Found ${foundToken} but no matching URL. Add the REST URL too.`;
-    } else {
-      why =
-        "No Redis credentials reached this deployment. Connect Upstash for " +
-        "Redis in Storage, then redeploy - environment variables only apply " +
-        "to builds made after they are added, and must cover the environment " +
-        "you are testing (Production or Preview).";
-    }
-
     return {
-      backend: "none",
-      ok: false,
-      message: `Votes cannot be saved on this host without a database. ${why}`,
+      backend: "tmp",
+      ok: true,
+      message: "Votes are stored in /tmp on this host.",
+      warning:
+        "This host only offers temporary storage. Votes can be lost if the " +
+        "server restarts or runs more than one copy of itself. Connect Upstash " +
+        "for Redis to make them durable.",
     };
   }
 
@@ -116,8 +102,10 @@ function parseHash(flat) {
 
 // --- File backend -----------------------------------------------------------
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const VOTES_FILE = path.join(DATA_DIR, "votes.json");
+// On a serverless host the deployment directory is read-only; /tmp is the one
+// writable path, so the same file backend is aimed there instead.
+const DATA_DIR = isServerless ? "/tmp" : path.join(process.cwd(), "data");
+const VOTES_FILE = path.join(DATA_DIR, isServerless ? "onam-votes.json" : "votes.json");
 const EMPTY = { votes: [] };
 
 // Every write goes through this chain so two people tapping Vote at the same

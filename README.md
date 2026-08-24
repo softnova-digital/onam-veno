@@ -181,37 +181,42 @@ shared phone can be passed around a table.
 
 ## Where the votes live
 
-Two backends, picked automatically from the environment. Nothing above
-`src/lib/store.js` changes between them.
+The backend is picked automatically. Nothing above `src/lib/store.js` changes
+between them.
 
-| Running | Backend | Setup |
-|---|---|---|
-| `npm run dev` on your machine | `data/votes.json` | none |
-| Vercel, or any serverless host | Redis | one integration, below |
+| Running | Backend | Setup | Durable? |
+|---|---|---|---|
+| `npm run dev` on your machine | `data/votes.json` | none | yes |
+| Vercel or similar | `/tmp/onam-votes.json` | none | **no — see below** |
+| Anywhere, with Redis credentials | Redis | one integration | yes |
 
-### Vercel needs Redis — this is not optional
+### On Vercel, /tmp works but is temporary
 
-On Vercel every request runs in a fresh function with a **read-only**
-filesystem, so `data/votes.json` saves nothing. Votes appear to work and then
-`/admin` shows nobody voted.
+The deployment directory on Vercel is read-only. `/tmp` is the one writable
+place, so that is where votes go, and it needs no setup at all.
 
-Connect a database once:
+The catch: `/tmp` belongs to a single warm instance. Votes there are lost when
+the instance goes cold, and if Vercel starts a second instance the two hold
+different votes, so the count can go down as well as up.
+
+For a short one-off vote where everyone answers within a few minutes, this
+usually holds. **Do not rely on it for anything you would be upset to lose.**
+`/admin` shows an amber note whenever this backend is in use.
+
+### Making it durable (optional)
+
+Connect a database once and the app switches to it automatically:
 
 1. Vercel dashboard → your project → **Storage** → **Marketplace**
-2. Pick **Upstash for Redis**, free plan
-3. Connect it to the `onam-veno` project
-4. **Redeploy** (Deployments → ⋯ → Redeploy)
+2. Pick **Upstash for Redis**, free plan, connect it to the project
+3. **Redeploy** — environment variables only reach builds made after they are added
 
-That is all. Upstash injects `KV_REST_API_URL` and `KV_REST_API_TOKEN`
-automatically, and the app picks them up — no code change, no npm package.
-`UPSTASH_REDIS_REST_URL` / `_TOKEN` are read too, if you set them by hand.
+It reads `KV_REST_API_URL` / `KV_REST_API_TOKEN` (and the `UPSTASH_REDIS_REST_*`
+and `REDIS_REST_*` spellings). No npm package and no code change: it talks to
+the REST endpoint over `fetch`.
 
 Also set **`ADMIN_PASSCODE`** under Settings → Environment Variables, or
 `/admin` will reject every passcode on the deployed site.
-
-To confirm it worked, open `/admin`. If storage is missing it shows a red
-warning across the top, and voting returns "Voting is not set up on this site
-yet" rather than quietly dropping the vote.
 
 ### The shape of a vote
 
@@ -227,13 +232,13 @@ yet" rather than quietly dropping the vote.
 ```
 
 In Redis these are fields of one hash, `onam:votes:<pollId>`, keyed by
-`voterKey`. Writes use `HSETNX`, which is atomic, so two people voting under one
-name at the same instant cannot both get through even on different instances.
-The file backend puts every write through a queue for the same reason.
+`voterKey`, written with `HSETNX` — atomic, so one vote per name holds even
+across instances. The file backends put every write through a queue for the
+same reason.
 
 Locally, back the votes up by copying `data/votes.json`. The file is gitignored,
-so test votes never get committed. To reset either backend, use **Clear all
-votes** on `/admin`.
+so test votes never get committed. To reset any backend, use **Clear all votes**
+on `/admin`.
 
 ## Files
 

@@ -122,6 +122,12 @@ export default function AdminBoard() {
         </p>
       )}
 
+      {data.storage?.warning && (
+        <p className="note">
+          <strong>Heads up</strong> {data.storage.warning}
+        </p>
+      )}
+
       <section className="panel">
         <ResultBars rows={data.rows} total={data.total} memberCount={data.memberCount} />
       </section>
