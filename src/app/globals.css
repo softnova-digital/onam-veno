@@ -312,7 +312,7 @@ a { color: var(--red); }
 
 .medallion {
   position: relative;
-  width: min(142px, 38vw);
+  width: min(224px, 58vw);
   aspect-ratio: 1;
   border-radius: var(--radius);
   animation: mv-float 4.2s ease-in-out infinite alternate;
@@ -590,7 +590,6 @@ select.field { cursor: pointer; }
   color: var(--red);
 }
 
-.question__en { margin: 3px 0 0; color: var(--ink-soft); font-size: 0.84rem; }
 
 /* --- the answers --------------------------------------------------------- */
 
@@ -608,8 +607,8 @@ select.field { cursor: pointer; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: 16px 10px 14px;
+  justify-content: center;
+  padding: 13px 10px 12px;
   border-radius: var(--radius);
   background: rgba(var(--surface), 0.72);
   backdrop-filter: blur(16px) saturate(1.25);
@@ -667,7 +666,7 @@ select.field { cursor: pointer; }
 .choice[data-on="true"]::after { opacity: 1; }
 
 .choice__emoji {
-  font-size: 1.8rem;
+  font-size: 1.7rem;
   line-height: 1.15;
   filter: drop-shadow(0 4px 8px rgba(59, 36, 22, 0.25));
   transition: transform 0.25s cubic-bezier(0.22, 1.4, 0.4, 1);
@@ -681,17 +680,6 @@ select.field { cursor: pointer; }
   font-weight: 700;
   line-height: 1.25;
   color: var(--red);
-}
-
-.choice__en { position: relative; font-weight: 800; font-size: 0.8rem; }
-
-.choice__tag {
-  position: relative;
-  margin-top: 3px;
-  max-width: 26ch;
-  color: var(--ink-soft);
-  font-size: 0.73rem;
-  line-height: 1.35;
 }
 
 .choice__tick {
@@ -1181,7 +1169,7 @@ select.field { cursor: pointer; }
    are flavour rather than instruction, so they are the first thing to go -
    that buys enough room for both answers and the Vote button together. */
 @media (max-height: 720px) {
-  .medallion { width: min(78px, 22vw); }
+  .medallion { width: min(138px, 37vw); }
   .step__label { margin-bottom: 5px; }
   .hint { margin-top: 4px; font-size: 0.76rem; }
   .hero { padding: 10px 0 12px; }
@@ -1190,8 +1178,7 @@ select.field { cursor: pointer; }
      tagline are what we can afford to lose on a short screen */
   .hero__title { display: none; }
   .hero__tagline { display: none; }
-  .choice__tag { display: none; }
-  .choice { padding: 12px 9px 11px; }
+  .choice { padding: 11px 9px 10px; }
   .question { margin: 2px 0 8px; padding: 9px 12px; }
   .votebar { padding-top: 9px; }
   .btn { padding: 14px 20px; }
@@ -1201,21 +1188,19 @@ select.field { cursor: pointer; }
 
 @media (min-width: 560px) {
   .hero { padding: 26px 0 24px; }
-  .medallion { width: 190px; }
+  .medallion { width: 270px; }
   .hero__tagline { font-size: 0.96rem; }
   .question { margin: 6px 0 16px; padding: 18px; }
   .choices { gap: 12px; }
   .choice { padding: 22px 18px 20px; }
   .choice__emoji { font-size: 2.2rem; }
-  .choice__en { font-size: 0.92rem; }
-  .choice__tag { font-size: 0.84rem; }
   .step { padding: 8px 0 4px; }
 }
 
 @media (min-width: 720px) {
   :root { --shell: 720px; }
   .hero { padding: 34px 0 32px; }
-  .medallion { width: 230px; }
+  .medallion { width: 290px; }
 
   .toolbar .btn { flex: 0 1 auto; }
 }

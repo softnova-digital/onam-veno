@@ -46,8 +46,7 @@ export const event = {
         emoji: "🌸",
         tone: "yes", // "yes" shows green on the result bars, "no" shows amber
         malayalamLabel: "വേണം",
-        label: "Yes, we want it",
-        tagline: "Pookalam, sadya, the whole thing.",
+        label: "Yes, we want it", // not shown on the button; used on the result bars
       },
       {
         id: "venda",
@@ -55,7 +54,6 @@ export const event = {
         tone: "no",
         malayalamLabel: "വേണ്ട",
         label: "No, skip it",
-        tagline: "Maybe next year instead.",
       },
     ],
   },

@@ -139,7 +139,6 @@ export default function VoteBooth({ poll, members }) {
 
         <div className="question">
           <p className="question__ml ml">{poll.malayalamQuestion}</p>
-          <p className="question__en">{poll.question}</p>
         </div>
 
         <fieldset className="choices">
@@ -192,8 +191,8 @@ function Choice({ option, index, checked, onSelect }) {
       />
       <span className="choice__emoji" aria-hidden="true">{option.emoji}</span>
       <span className="choice__ml ml">{option.malayalamLabel}</span>
-      <span className="choice__en">{option.label}</span>
-      {option.tagline && <span className="choice__tag">{option.tagline}</span>}
+      {/* kept for screen readers, which may not announce the Malayalam */}
+      <span className="sr-only">{option.label}</span>
       <span className="choice__tick" aria-hidden="true">✓</span>
     </label>
   );
