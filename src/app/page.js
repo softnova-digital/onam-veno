@@ -33,6 +33,11 @@ export default async function HomePage() {
             <strong>Setup needed.</strong> {storage.message}
           </p>
         )}
+        {storage.warning && (
+          <p className="note" role="alert">
+            <strong>Setup needed</strong> {storage.warning}
+          </p>
+        )}
         <VoteBooth poll={poll} members={remaining} />
       </main>
 

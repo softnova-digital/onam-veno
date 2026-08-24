@@ -17,10 +17,11 @@ import { normalizeName } from "@/config/event";
 //
 //  Everything above this file works the same either way.
 //
-//  A note on /tmp: it belongs to one warm instance and is wiped on a cold
-//  start, so votes there can be lost or split if the host spins up a second
-//  instance. Fine for a short one-off vote, not for anything that matters.
-//  Connect Redis (see the README) to make it durable.
+//  A warning about /tmp on Vercel: it is writable, but it is private to one
+//  instance of one function. Each route here deploys as its own function, so
+//  /api/vote and /api/admin never share a /tmp and votes written by one are
+//  invisible to the other. It is a last resort for a single-process host, not
+//  a working option on Vercel. Connect Redis (see the README) there.
 // ============================================================================
 
 // Different providers inject different names, so accept the usual ones.
@@ -51,11 +52,13 @@ export function storageStatus() {
     return {
       backend: "tmp",
       ok: true,
-      message: "Votes are stored in /tmp on this host.",
+      message: "Votes are being written to /tmp on this host.",
       warning:
-        "This host only offers temporary storage. Votes can be lost if the " +
-        "server restarts or runs more than one copy of itself. Connect Upstash " +
-        "for Redis to make them durable.",
+        "Votes are not being counted. Each page and API route here runs as a " +
+        "separate function with its own private /tmp, so a vote saved by the " +
+        "voting page is invisible to the results and organisers pages. " +
+        "Connect Upstash for Redis in Storage and redeploy - it is free and " +
+        "the app switches over on its own.",
     };
   }
 
